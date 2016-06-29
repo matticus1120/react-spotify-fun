@@ -102,14 +102,14 @@ var TableList = React.createClass({
 });
 
 var ArtistBox = React.createClass({
-	setArtistData : function() {
-		if( $.isEmptyObject(this.state.info) )
+	setArtistData : function( artistData ) {
+		if( $.isEmptyObject(artistData) )
 			return;
 		$.ajax({
-			url : 'https://api.spotify.com/v1/artists/' + this.state.info.id + '/albums?market=CA',
+			url : 'https://api.spotify.com/v1/artists/' + artistData.id + '/albums?market=CA',
 			cache : false,
 			success : function(response) {
-				this.setState({ albums : response.items });
+				this.setState({ info : artistData, albums : response.items });
 			}.bind(this),
 			error: function(xhr, status, err) {
 				console.error(this.props.url, status, err.toString());
@@ -120,8 +120,7 @@ var ArtistBox = React.createClass({
 		return { info : {}, albums : [] };
 	},
 	componentWillReceiveProps : function(nextProps) {
-		this.setState({ info : nextProps.artist_data });
-		this.setArtistData();
+		this.setArtistData( nextProps.artist_data );
 	},
 	artistHeader : function() {
 		if( $.isEmptyObject(this.state.info) )
@@ -158,7 +157,7 @@ var AlbumsList = React.createClass({
 	render : function() {
 		var albumsNodes = this.props.albums.map(function(album, i){
 			return (
-				<li className="album">
+				<li className="album" key={album.id}>
 					<div className="row">
 						<div className="col-md-9">
 							<h5><a href={album.external_urls.spotify} target="_blank"> {album.name}</a> - ({album.album_type})</h5>
