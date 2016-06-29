@@ -21,7 +21,6 @@
 			<div>
 				 <div id="example"></div>
 			</div>
-			<div class="container">
 				<div id="search-app">
 					<table class="table results-table table-bordered table-hover table-striped">
 						<thead>
@@ -35,7 +34,6 @@
 						<tbody id="results-body"></tbody>
 					</table>
 				</div>
-			</div>
 
 		</div>
 		<div class="col-md-2"></div>
