@@ -54,8 +54,8 @@ var SearchForm = React.createClass({
 });
 
 var ListItem = React.createClass({
-	handleArtistClick : function(artist_id) {
-		this.props.handleListItemClick({artist_id : artist_id});
+	handleArtistClick : function(artist_data) {
+		this.props.handleListItemClick({artist_data : artist_data});
 	},
 	render : function() {
 		return (
@@ -65,7 +65,7 @@ var ListItem = React.createClass({
 				<td className="artistViewAlbums">
 					<button 
 						className="btn btn-primary btn-xs" 
-						onClick={this.handleArtistClick.bind(this, this.props.artistId, this.props.artistId)}>View Albums
+						onClick={this.handleArtistClick.bind(this, this.props.artistData, this.props.artistKey)}>View Albums
 					</button>
 				</td>
 			</tr>
@@ -83,7 +83,7 @@ var TableList = React.createClass({
 		var parent = this;
 		var ListNodes = this.props.items.map(function(artist, i){
 			return (
-				<ListItem name={artist.name} key={artist.id} artistId={artist.id} followers={artist.followers} handleListItemClick={parent.handleListItemClick}/>
+				<ListItem name={artist.name} key={artist.id} artistData={artist} artistKey={artist.id} followers={artist.followers} handleListItemClick={parent.handleListItemClick}/>
 			);
 		});
 		return (
@@ -102,31 +102,77 @@ var TableList = React.createClass({
 });
 
 var ArtistBox = React.createClass({
-	getArtistData : function() {
-		console.log(this.props.artistId);
-		if( !this.props.artistId )
+	setArtistData : function() {
+		if( $.isEmptyObject(this.state.info) )
 			return;
 		$.ajax({
-			url : 'https://api.spotify.com/v1/artists/' + this.props.artistId,
+			url : 'https://api.spotify.com/v1/artists/' + this.state.info.id + '/albums?market=CA',
 			cache : false,
 			success : function(response) {
-				console.log('hi');
-				console.log(response);
-				// this.setState({items : data.artists.items, total : data.artists.total, searchQuery : query, jsonLink : data.artists.href });
+				this.setState({ albums : response.items });
 			}.bind(this),
 			error: function(xhr, status, err) {
 				console.error(this.props.url, status, err.toString());
 			}.bind(this)
 		});
 	},
-	render : function() {
-
-		var info = this.getArtistData();
+	getInitialState : function() {
+		return { info : {}, albums : [] };
+	},
+	componentWillReceiveProps : function(nextProps) {
+		this.setState({ info : nextProps.artist_data });
+		this.setArtistData();
+	},
+	artistHeader : function() {
+		if( $.isEmptyObject(this.state.info) )
+			return;
 		return (
+			<div className="artistInfoOuter">
+				<div className="row infoHeader">
+					<div className="col-md-7">
+						<h3>{this.state.info.name}</h3>
+					</div>
+					<div className="col-md-5 text-right">
+						<img src={this.state.info.images[1].url} />
+					</div>
+				</div>
+				<div className="row">
+					<h5>Albums</h5>
+					<AlbumsList albums={this.state.albums} />
+				</div>
+			</div>	
+		);
+	},
+	render : function() {
+		// this.setArtistData();
+		var artistHeader = this.artistHeader();
+		return (	
 			<div className="artist-header">
-				<h3>{this.props.artistId}</h3>
+				{artistHeader}
 			</div>
 		)
+	}
+});
+
+var AlbumsList = React.createClass({
+	render : function() {
+		var albumsNodes = this.props.albums.map(function(album, i){
+			return (
+				<li className="album">
+					<div className="row">
+						<div className="col-md-9">
+							<h5><a href={album.external_urls.spotify} target="_blank"> {album.name}</a> - ({album.album_type})</h5>
+						</div>
+						<div className="col-md-3 text-right">
+							<img src={album.images[1].url} />
+						</div>
+					</div>
+				</li>
+			);
+		});
+		return (
+			<ul class="albumsList">{albumsNodes}</ul>
+		);
 	}
 });
 
@@ -151,7 +197,7 @@ var SearchBox = React.createClass({
 		});
 	},
 	getInitialState : function() {
-		return { items : [], artistId : false };
+		return { items : [], artist_data : false };
 	},
 	componentDidMount : function() {
 		this.loadResultsFromApi('dear');
@@ -160,21 +206,20 @@ var SearchBox = React.createClass({
 		this.loadResultsFromApi(formData.query);
 	},
 	handleArtistData : function(parent_data) {
-		this.setState({ artistId : parent_data.artist_id });
+		this.setState({ artist_data : parent_data.artist_data });
 	},
 	render : function() {
 		return (
 			<div className="searchApp">
 				<h3>Conducto your artist searcho</h3>
 				<div className="row">
-					<div className="col-md-7 text-center">
+					<div className="col-md-6 text-center">
 						<SearchForm  onQuerySubmit={this.doQuerySubmit} />
 						<SearchResultsHeader total={this.state.total} jsonLink={this.state.href} searchQuery={this.state.searchQuery}/>
 						<TableList items={this.state.items} doArtistWindow={this.handleArtistData}/>
 					</div>
-					<div className="col-md-5">
-						<h4>Arist Info</h4>
-						<ArtistBox artistId={this.state.artistId}/>
+					<div className="col-md-6">
+						<ArtistBox artist_data={this.state.artist_data}/>
 					</div>
 				</div>
 			</div>
