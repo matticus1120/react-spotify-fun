@@ -55,9 +55,7 @@ var SearchForm = React.createClass({
 
 var ListItem = React.createClass({
 	handleArtistClick : function(artist_id) {
-		this.props.handleListItemClick();
-		// console.log(artist_id);	
-		this.props.doArtistWindow({artist_id : 32});
+		this.props.handleListItemClick({artist_id : artist_id});
 	},
 	render : function() {
 		return (
@@ -78,8 +76,8 @@ var ListItem = React.createClass({
 
 
 var TableList = React.createClass({
-	handleListItemClick : function() {
-		this.props.doArtistWindow();
+	handleListItemClick : function(data) {
+		this.props.doArtistWindow(data);
 	},
 	render : function() {
 		var parent = this;
@@ -103,27 +101,31 @@ var TableList = React.createClass({
 	}
 });
 
-var ArtistWindow = React.createClass({
-	getArtistData : function(info) {
-		console.log(info);
-		return 'stuff';
-		/*$.ajax({
-			url : '/v1/artists//albums',
+var ArtistBox = React.createClass({
+	getArtistData : function() {
+		console.log(this.props.artistId);
+		if( !this.props.artistId )
+			return;
+		$.ajax({
+			url : 'https://api.spotify.com/v1/artists/' + this.props.artistId,
 			cache : false,
-			},
-			success : function(data) {
+			success : function(response) {
 				console.log('hi');
+				console.log(response);
 				// this.setState({items : data.artists.items, total : data.artists.total, searchQuery : query, jsonLink : data.artists.href });
 			}.bind(this),
 			error: function(xhr, status, err) {
 				console.error(this.props.url, status, err.toString());
 			}.bind(this)
-		});*/
+		});
 	},
 	render : function() {
-		var info = this.getArtistData;
+
+		var info = this.getArtistData();
 		return (
-			<div className="modal_cool">{info}</div>
+			<div className="artist-header">
+				<h3>{this.props.artistId}</h3>
+			</div>
 		)
 	}
 });
@@ -149,7 +151,7 @@ var SearchBox = React.createClass({
 		});
 	},
 	getInitialState : function() {
-		return { items : [], artistId : 41 };
+		return { items : [], artistId : false };
 	},
 	componentDidMount : function() {
 		this.loadResultsFromApi('dear');
@@ -157,15 +159,10 @@ var SearchBox = React.createClass({
 	doQuerySubmit : function( formData ) {
 		this.loadResultsFromApi(formData.query);
 	},
-	handleArtistData : function() {
-		// console.log('me');
-		var items = this.state.items;
-		this.setState({ items : items, artistId : 42 });
-		console.log(this.state);
-		
+	handleArtistData : function(parent_data) {
+		this.setState({ artistId : parent_data.artist_id });
 	},
 	render : function() {
-		console.log(this.state);
 		return (
 			<div className="searchApp">
 				<h3>Conducto your artist searcho</h3>
@@ -177,7 +174,7 @@ var SearchBox = React.createClass({
 					</div>
 					<div className="col-md-5">
 						<h4>Arist Info</h4>
-						<ArtistWindow artistData={this.state.artistData}/>
+						<ArtistBox artistId={this.state.artistId}/>
 					</div>
 				</div>
 			</div>
