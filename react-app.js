@@ -12,7 +12,7 @@ var SearchResultsHeader = React.createClass({
 		return (
 			<div className="resultsHeader">
 				<p>Searching for <b><em>{this.props.searchQuery}</em></b> | Total Found: <b><em>"{this.props.total}"</em></b></p>
-				<p><a href="{this.props.jsonLink}" target="_blank">View JSON Data</a></p>
+				{<p><a href="{this.props.jsonLink}" target="_blank">View JSON Data</a></p>}
 			</div>
 		);
 	}
@@ -47,7 +47,7 @@ var SearchForm = React.createClass({
 					className="form-control"
 					onChange = {this.handleQueryChange}
 				/>
-				<input type="submit" id="search" className="btn btn-primary" value="Search" />
+				<input type="submit" id="search" className="btn btn-success btn-sm btn-block" value="Search" />
 			</form>
 		);
 	}
@@ -66,7 +66,7 @@ var ListItem = React.createClass({
 				<td className="artistFollowers">{this.props.followers.total}</td>
 				<td className="artistViewAlbums">
 					<button 
-						className="btn" 
+						className="btn btn-primary btn-xs" 
 						onClick={this.handleArtistClick.bind(this, this.props.artistId, this.props.artistId)}>View Albums
 					</button>
 				</td>
@@ -89,7 +89,7 @@ var TableList = React.createClass({
 			);
 		});
 		return (
-			<table className="table table-hover table-condensed">
+			<table className="table table-hover table-condensed table-striped">
 				<thead>
 					<tr>
 						<th>Artist</th>
@@ -149,7 +149,7 @@ var SearchBox = React.createClass({
 		});
 	},
 	getInitialState : function() {
-		return { items : [], artistData : {} };
+		return { items : [], artistId : 41 };
 	},
 	componentDidMount : function() {
 		this.loadResultsFromApi('dear');
@@ -157,10 +157,10 @@ var SearchBox = React.createClass({
 	doQuerySubmit : function( formData ) {
 		this.loadResultsFromApi(formData.query);
 	},
-	handleArtistData : function(things) {
+	handleArtistData : function() {
 		// console.log('me');
 		var items = this.state.items;
-		this.setState({ items : items, artistData : things });
+		this.setState({ items : items, artistId : 42 });
 		console.log(this.state);
 		
 	},
@@ -169,10 +169,17 @@ var SearchBox = React.createClass({
 		return (
 			<div className="searchApp">
 				<h3>Conducto your artist searcho</h3>
-				<SearchForm  onQuerySubmit={this.doQuerySubmit} />
-				<SearchResultsHeader total={this.state.total} jsonLink={this.state.href} searchQuery={this.state.searchQuery}/>
-				<TableList items={this.state.items} doArtistWindow={this.handleArtistData}/>
-				<ArtistWindow artistData={this.state.artistData}/>
+				<div className="row">
+					<div className="col-md-7 text-center">
+						<SearchForm  onQuerySubmit={this.doQuerySubmit} />
+						<SearchResultsHeader total={this.state.total} jsonLink={this.state.href} searchQuery={this.state.searchQuery}/>
+						<TableList items={this.state.items} doArtistWindow={this.handleArtistData}/>
+					</div>
+					<div className="col-md-5">
+						<h4>Arist Info</h4>
+						<ArtistWindow artistData={this.state.artistData}/>
+					</div>
+				</div>
 			</div>
 		);
 	}
